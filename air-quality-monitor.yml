@@ -1,0 +1,37 @@
+esphome:
+  name: air-quality-monitor
+  includes:
+    - GP2Y1010AU0F.h
+
+substitutions:
+  device_name: "Air Quality Monitor"
+
+esp8266:
+  board: nodemcuv2
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "mypassword"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+sensor:
+  # KS0196 PM2.5 sensor
+  - platform: custom
+    lambda: |-
+      auto dust_sensor = new GP2Y1010AU0F();
+      App.register_component(dust_sensor);
+      return {dust_sensor};
+    sensors:
+      name: "${device_name} PM2.5 Dust Sensor"
+      accuracy_decimals: 2
+      unit_of_measurement: "µg/m³"
+      icon: "mdi:smog"
+      filters:
+        - median: # send every minute the median of the past 5 measurements
+            window_size: 5
+            send_every: 5
